@@ -135,7 +135,10 @@ The Python and MATLAB workflows can be mixed: generate `.npy` with Python, conve
 - Dataset: NE213A TOF on Zenodo: 10.5281/zenodo.14305929
 
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## Notes and caveats
 
 - Randomness in RCNN (stochastic masks) and GMM fitting may cause small run‑to‑run variations; set seeds if you need strict reproducibility.
-- This repository currently does not include a license file.
