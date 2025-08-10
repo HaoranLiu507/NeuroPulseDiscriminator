@@ -1,55 +1,141 @@
-# Pulse shape discrimination of neutron and gamma-ray using neuromorphic models
+# NeuroPulseDiscriminator — Brain‑inspired neutron/gamma pulse‑shape discrimination
 
-## Introduction
+This repository explores neuromorphic models for pulse‑shape discrimination (PSD) between neutron and gamma events. It implements two brain‑inspired networks:
 
-This project explores the application of two innovative brain-inspired neural networks: the Random-Coupled Neural Network (RCNN) and the Continuous-Coupled Neural Network (CCNN), specifically designed for pulse shape discrimination tasks. By leveraging the unique biological interpretability and temporal structures found in these networks, both RCNN and CCNN can effectively capture the dynamic characteristics of pulse shapes through neural activity, enabling them to perform discrimination without the need for extensive training.
+- Random‑Coupled Neural Network (RCNN)
+- Continuous‑Coupled Neural Network (CCNN)
 
-This capability offers a significant advantage, as it reduces the computational resource demands often associated with traditional second-generation neural networks. In our research, we created multiple energy threshold sub-datasets from the time-of-flight (TOF) dataset derived from PuBe sources. Experimental results indicate that both RCNN and CCNN exhibit commendable discrimination efficacy and high accuracy across various energy thresholds, outperforming traditional methods.
+Both models leverage temporal dynamics and biologically interpretable mechanisms to separate pulse classes with minimal training. The repo contains:
 
+- Python utilities to prepare datasets and tune model hyperparameters with Optuna
+- MATLAB implementations for end‑to‑end PSD experiments
 
-![](psd_comparison.jpg)
-
-
-## Dependencies
-* Python 3.11
-
-* numpy
-
-* pandas
-
-* scipy
-
-* skimage
-
-* imageio
-
-* matplotlib
-
-* tqdm
-
-* sklearn
-
-## 1. How to create neutron and gamma datasets with different energy thresholds
-
-   You can directly run **` TOF_NE213A.py `** in the datasetmaker folder to generate TOF datasets at different energy thresholds based on **` NE213A_data.pkl `**. It is worth noting that you need to modify the energy lower limit in line 18 of the **` TOF_NE213A.py `** to specify the threshold energy. After the file runs, a folder named NE213A_* Mev (* represents energy threshold) will be generated, which contains two files, **`gamma_*Mev.npy`** and **`neutron_*Mev.npy`**, representing neutron gamma data at the * Mev energy threshold.
-
-   Since the algorithms used in the experiment are all built on Matlab, it is necessary to convert the npy file into a mat file that can be processed by Matlab through the file **`dataset_maker.m`** located in the folder matlabdataset. Finally, we removed some obvious noise signals through the file **`data_filter.m`** , and saved the processed signal and its normalized version. These signals were also directly processed by the algorithm.
-   
-   You can directly download npy files and mat files with different energy thresholds and origin pkl file here [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14305929.svg)](https://doi.org/10.5281/zenodo.14305929).
-
-## 2. How to use RCNN and CCNN to discriminate datasets
-
-You can directly run **`rcnntest.m`** and **`ccnntest.m`** in the matlabdataset folder to discriminate datasets based on RCNN and CCNN model.
-
-## 3. How to use optuna to tune model parameters
-Optuna is an open-source automated hyperparameter optimization framework designed to help developers and researchers efficiently tune the hyperparameters of multiple types of models models [2]. It offers a simple yet powerful way to find the best combinations of hyperparameters, thereby enhancing model performance.
-
-Taking RCNN as an example, you can directly run the **`op_main_rcnn.py`** file to adjust parameters. If there are other parameters that need to be adjusted, they can be specified in the **`objective`** function, taking the af as an example.
-   ```bash
-   af = trial.suggest_float("af", 0.1, 0.9, step=0.05)
-   ```
-
-[2] Akiba, Takuya, et al. "Optuna: A next-generation hyperparameter optimization framework." Proceedings of the 25th ACM SIGKDD international conference on knowledge discovery & data mining. 2019.
+![PSD comparison](psd_comparison.jpg)
 
 
+## Repository layout
 
+- `datasetmaker/` — Tools to build PSD datasets from the NE213A time‑of‑flight (TOF) data
+  - `TOF_NE213A.py` — create neutron/gamma datasets at configurable energy thresholds
+  - `library/` — data processing helpers (Pandas/SciPy/plotting)
+- `OPTUNA_PYTHON/` — RCNN/CCNN models and Optuna optimization entry points
+  - `RCNN_MODEL.py`, `CCNN_MODEL.py` — core model steps
+  - `op_main_rcnn.py`, `op_main_ccnn.py` — Optuna objectives and study runner
+  - `Double_guass.py` — two‑component GMM and FOM computation
+- `matlabdataset/` — MATLAB reference implementations and dataset tools
+  - `rcnntest.m`, `ccnntest.m` — run PSD using RCNN/CCNN in MATLAB
+  - `dataset_maker.m`, `data_filter.m` — convert/clean datasets for MATLAB use
+
+
+## Installation (Python)
+
+Tested with Python 3.11 on Windows. Create a virtual environment and install dependencies:
+
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+python -m pip install -U pip wheel
+pip install numpy scipy pandas matplotlib tqdm scikit-learn optuna opencv-python
+# Optional helpers used by some utilities
+pip install dask[complete] lmfit scikit-image imageio
+```
+
+Notes
+- If you run into backend issues for Matplotlib on Linux, install Tk: `sudo apt-get install python3-tk` and set `matplotlib.use('TkAgg')` (already set in `TOF_NE213A.py`).
+
+
+## Datasets
+
+Download the NE213A TOF dataset file `NE213A_data.pkl` from Zenodo and place it next to `TOF_NE213A.py`:
+
+[Dataset on Zenodo (DOI: 10.5281/zenodo.14305929)](https://doi.org/10.5281/zenodo.14305929)
+
+Expected location:
+
+```
+datasetmaker/
+  NE213A_data.pkl
+  TOF_NE213A.py
+```
+
+The script now resolves paths relative to its own directory, so you can run it from anywhere.
+
+
+## Create neutron/gamma datasets at energy thresholds
+
+Edit `datasetmaker/TOF_NE213A.py`:
+
+- Set the energy window:
+  - `energy_threshold_low`
+  - `energy_threshold_up`
+- Optional: adjust `PS_cut` and TOF windows defined at the top of the file
+
+Run the script (quotes handle spaces in the folder name):
+
+```bash
+python "datasetmaker/TOF_NE213A.py"
+```
+
+This produces two arrays saved next to the script in a dynamically created folder named by the threshold, e.g. `NE213A_1.5Mev/gamma_1.5Mev.npy` and `NE213A_1.5Mev/neutron_1.5Mev.npy`.
+
+
+## Hyperparameter optimization with Optuna (Python)
+
+Entry points:
+
+- RCNN: `OPTUNA_PYTHON/op_main_rcnn.py`
+- CCNN: `OPTUNA_PYTHON/op_main_ccnn.py`
+
+Both expect a 2D array of signals where each row is one waveform.
+
+Supported input formats for `file_path` in both scripts:
+
+- CSV: `np.loadtxt(file_path, delimiter=',')`
+- NPY: `np.load(file_path)`
+
+They use SQLite in the working directory by default:
+
+- RCNN: database `optuna_rcnn_fom2.db`, study `optuna_rcnn_fom2`
+- CCNN: database `optuna_ccnn7.db`, study `optuna_ccnn7`
+
+Run from the repo root:
+
+```bash
+python "OPTUNA_PYTHON/op_main_rcnn.py"
+python "OPTUNA_PYTHON/op_main_ccnn.py"
+```
+
+The objective computes a PSD score per signal, fits a 2‑component Gaussian Mixture, and maximizes the figure of merit (FOM):
+
+\[ \mathrm{FOM} = \frac{\mu_1 - \mu_0}{1.667\,(\sigma_1 + \sigma_0)} \]
+
+
+## MATLAB workflows
+
+If you prefer MATLAB, use the scripts in `matlabdataset/`:
+
+- Build/convert datasets: `dataset_maker.m`, `data_filter.m`
+- Run PSD: `rcnntest.m` and `ccnntest.m`
+
+The Python and MATLAB workflows can be mixed: generate `.npy` with Python, convert to `.mat` via `dataset_maker.m`, then run MATLAB PSD; or prepare CSV and run Python Optuna.
+
+
+## Dependencies (Python)
+
+- numpy, scipy, pandas, matplotlib, tqdm
+- scikit‑learn (GaussianMixture)
+- optuna (hyperparameter optimization)
+- opencv‑python (`cv2`, used by RCNN)
+- Optional: dask, lmfit, scikit‑image, imageio
+
+
+## References
+
+- Optuna: Akiba, Takuya, et al. “Optuna: A next‑generation hyperparameter optimization framework.” Proceedings of KDD 2019.
+- Dataset: NE213A TOF on Zenodo: 10.5281/zenodo.14305929
+
+
+## Notes and caveats
+
+- Randomness in RCNN (stochastic masks) and GMM fitting may cause small run‑to‑run variations; set seeds if you need strict reproducibility.
+- This repository currently does not include a license file.
