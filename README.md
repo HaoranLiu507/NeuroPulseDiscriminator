@@ -129,6 +129,23 @@ The Python and MATLAB workflows can be mixed: generate `.npy` with Python, conve
 - Optional: dask, lmfit, scikit‑image, imageio
 
 
+## Citation
+
+If you use this repository in your research, please cite the published article:
+
+Yihan Zhan, Haoran Liu, Mingzhe Liu, Peng Li, Kaimin Wang, Zhuo Zuo, Xianghe Liu, and Bingqi Liu. **Pulse Shape Discrimination of Neutrons and Gamma Rays Using Neuromorphic Models.** *Nuclear Technology*, published online February 19, 2026. [Published article](https://doi.org/10.1080/00295450.2025.2598528)
+
+```bibtex
+@article{zhan2026pulse,
+  author = {Zhan, Yihan and Liu, Haoran and Liu, Mingzhe and Li, Peng and Wang, Kaimin and Zuo, Zhuo and Liu, Xianghe and Liu, Bingqi},
+  title = {Pulse Shape Discrimination of Neutrons and Gamma Rays Using Neuromorphic Models},
+  journal = {Nuclear Technology},
+  year = {2026},
+  doi = {10.1080/00295450.2025.2598528}
+}
+```
+
+
 ## References
 
 - Optuna: Akiba, Takuya, et al. “Optuna: A next‑generation hyperparameter optimization framework.” Proceedings of KDD 2019.
